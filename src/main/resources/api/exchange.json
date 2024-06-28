@@ -1,0 +1,21 @@
+{
+  "dependencies": [
+    {
+      "version": "1.0.0",
+      "assetId": "securityscheme",
+      "groupId": "091c2cc1-e2d3-4b26-964e-38184b5ea190",
+      "provided": false
+    }
+  ],
+  "version": "1.0.1",
+  "descriptorVersion": "1.0.0",
+  "classifier": "raml",
+  "main": "xl-customer-api.raml",
+  "assetId": "xl-customer-api",
+  "groupId": "091c2cc1-e2d3-4b26-964e-38184b5ea190",
+  "name": "xl-customer-api",
+  "organizationId": "091c2cc1-e2d3-4b26-964e-38184b5ea190",
+  "apiVersion": "v1",
+  "tags": [],
+  "originalFormatVersion": "1.0"
+}

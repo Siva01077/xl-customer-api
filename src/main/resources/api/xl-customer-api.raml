@@ -1,0 +1,36 @@
+#%RAML 1.0
+title: xl-customer-api
+
+securitySchemes:
+  customerprivacy: !include exchange_modules/091c2cc1-e2d3-4b26-964e-38184b5ea190/securityscheme/1.0.0/securityscheme.raml
+
+/checkBalance:
+ get:
+   securedBy:
+    - customerprivacy
+   queryParameters:
+     SelectSystem:
+       required: true
+       type : string
+     bankName:
+       required: true
+       enum: ['icici','axis']
+   responses:
+     200:
+       body:
+         application/json:
+           example: 
+             {
+               "result":"your balance is 55000"
+               }
+
+/Createaccount:
+ post:
+   securedBy:
+    - customerprivacy
+   body:
+    application/json:
+        example:
+          {
+            "accountcreated": "successful"
+          }

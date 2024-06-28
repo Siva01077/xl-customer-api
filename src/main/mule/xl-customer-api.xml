@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="xl-customer-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="xl-customer-api-config" api="xl-customer-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+        <api-gateway:autodiscovery apiId="19645406" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="23a11e34-1831-4dd8-a63c-18834e4a1608" flowRef="xl-customer-api-main" />
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="1d31207e-4898-4b92-8424-0ba35668be15">
+        <http:request-connection host="processapi.us-e2.cloudhub.io" />
+    </http:request-config>
+    <api-gateway:autodiscovery apiId="19645406" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="2c836ed6-a8cf-43f9-b9b0-9ba6e8b73c0c" flowRef="xl-customer-api-main" />
+    <flow name="xl-customer-api-main">
+        <http:listener config-ref="xl-customer-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="xl-customer-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="xl-customer-api-console">
+        <http:listener config-ref="xl-customer-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="xl-customer-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\checkBalance:xl-customer-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  result: "your balance is 55000"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="580e902a-6436-4367-a245-e727be9fb73c" message="#[&quot;xl is called&quot;]" />
+        <http:request method="GET" doc:name="Request" doc:id="51de309d-c297-4b81-8be8-0747624f3571" config-ref="HTTP_Request_configuration" path="/getcustomers" >
+			<http:query-params ><![CDATA[#[output application/json
+---
+{
+	"SelectSystem" : attributes.queryParams.SelectSystem
+}]]]></http:query-params>
+		</http:request>
+    </flow>
+    <flow name="post:\Createaccount:application\json:xl-customer-api-config">
+        <logger level="INFO" message="post:\Createaccount:application\json:xl-customer-api-config" />
+    </flow>
+</mule>
